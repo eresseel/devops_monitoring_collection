@@ -1,0 +1,13 @@
+---
+- name: Import select organization file
+  ansible.builtin.include_tasks: select_organization.yml
+
+- name: Create or update a Grafana team
+  community.grafana.grafana_team:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    email: "{{ item.email }}"
+    members: "{{ item.members | default(omit) }}"
+    state: present

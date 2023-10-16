@@ -1,0 +1,13 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: true
+  collections:
+    - devops.devops_monitoring_collection
+  roles:
+    - role: ansible_role_grafana
+      vars:
+        grafana_is_install: true
+        grafana_security:
+          admin_user: admin
+          admin_password: 'admin123'

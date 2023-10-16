@@ -1,0 +1,62 @@
+---
+- name: Import select organization file
+  ansible.builtin.include_tasks: select_organization.yml
+
+- name: "Copy JSON config file to server"
+  ansible.builtin.copy:
+    src: "{{ item.folder_path | default(omit) }}/{{ item.file | default(omit) }}"
+    dest: "{{ grafana_data_dir }}/dashboards/{{ item.file | default(omit) }}"
+    owner: grafana
+    group: grafana
+  when: item.file is defined
+
+- name: Get datasource list
+  ansible.builtin.uri:
+    url: "{{ grafana_api_url }}/api/datasources"
+    user: "{{ grafana_security.admin_user }}"
+    password: "{{ grafana_security.admin_password }}"
+    force_basic_auth: true
+    return_content: true
+  register: existing_datasource_id
+  failed_when: existing_datasource_id.status != 200
+  when: item.file is defined
+
+- name: Replace values
+  ansible.builtin.replace:
+    path: "{{ grafana_data_dir }}/dashboards/{{ item.file | default(omit) }}"
+    regexp: "\\$\\{DS_{{ datasource.name | regex_escape }}\\}"
+    replace: "{{ (existing_datasource_id['json'] | selectattr('name', 'equalto', datasource['name']) | first).uid }}"
+    backup: yes
+  when: item.file is defined
+  vars:
+    datasource_name_list: "{{ item.datasource_name }}"
+  loop: "{{ datasource_name_list }}"
+  loop_control:
+    loop_var: datasource
+
+- name: Import Grafana dashboards from file
+  community.grafana.grafana_dashboard:
+    grafana_url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    commit_message: "{{ item.commit_message | default(omit) }}"
+    folder: "{{ item.folder | default(omit) }}"
+    path: "{{ grafana_data_dir }}/dashboards/{{ item.file | default(omit) }}"
+    org_id: "{{ (existing_organization_id['json'] | selectattr('name', 'equalto', item['org_name']) | first).id }}"
+    overwrite: true
+    state: present
+  when: item.file is defined
+
+- name: Import Grafana dashboards from server
+  community.grafana.grafana_dashboard:
+    grafana_url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    commit_message: "{{ item.commit_message | default(omit) }}"
+    folder: "{{ item.folder | default(omit) }}"
+    dashboard_id: "{{ item.dashboard_id }}"
+    dashboard_revision: "{{ item.dashbord_revision | default(omit) }}"
+    org_id: "{{ (existing_organization_id['json'] | selectattr('name', 'equalto', item['org_name']) | first).id }}"
+    overwrite: true
+    state: present
+  when: item.file is not defined

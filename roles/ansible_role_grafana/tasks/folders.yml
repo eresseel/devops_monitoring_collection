@@ -1,0 +1,11 @@
+---
+- name: Import select organization file
+  ansible.builtin.include_tasks: select_organization.yml
+
+- name: Create a folder
+  community.grafana.grafana_folder:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    title: "{{ item.title }}"
+    state: present

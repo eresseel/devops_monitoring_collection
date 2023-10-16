@@ -1,0 +1,26 @@
+---
+- name: Import select organization file
+  ansible.builtin.include_tasks: select_organization.yml
+
+- name: Check contact points list
+  ansible.builtin.uri:
+    url: "{{ grafana_api_url }}/api/v1/provisioning/contact-points"
+    user: "{{ grafana_security.admin_user }}"
+    password: "{{ grafana_security.admin_password }}"
+    force_basic_auth: true
+    return_content: true
+  register: existing_contact_points
+
+- name: Create contact points
+  ansible.builtin.uri:
+    url: "{{ grafana_api_url }}/api/v1/provisioning/contact-points"
+    user: "{{ grafana_security.admin_user }}"
+    password: "{{ grafana_security.admin_password }}"
+    force_basic_auth: true
+    method: POST
+    body_format: json
+    body: "{{ item | to_json }}"
+    status_code:
+      - 202
+  when: ((existing_contact_points['json'] | selectattr("uid", "equalto", item['uid'])) | list) | length == 0
+  changed_when: true
