@@ -1,0 +1,186 @@
+---
+- name: Install Grafana
+  ansible.builtin.import_tasks: install.yml
+  when: grafana_is_install
+
+- name: Grafana configure
+  ansible.builtin.import_tasks: configure.yml
+  when: grafana_is_install
+
+- name: Wait for grafana to start (http/s)
+  ansible.builtin.wait_for:
+    host: "{{ grafana_address }}"
+    port: "{{ grafana_port }}"
+  when:
+    - grafana_server.protocol is undefined or grafana_server.protocol in ['http', 'https']
+    - grafana_is_install
+
+- name: Wait for grafana to start (socket)
+  ansible.builtin.wait_for:
+    path: "{{ grafana_server.socket }}"
+  when:
+    - grafana_server.protocol is defined and grafana_server.protocol == 'socket'
+    - grafana_is_install
+
+- name: Create a Grafana organization
+  community.grafana.grafana_organization:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    state: present
+  with_items: "{{ grafana_organization }}"
+  when: grafana_organization | length > 0
+
+- name: Create a Grafana api key
+  grafana_api_key:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    role: "{{ item.role }}"
+    seconds_to_live: "{{ item.seconds_to_live | default(omit) }}"
+    org_name: "{{ item.org_name }}"
+    state: present
+  with_items: "{{ grafana_api_keys }}"
+  register: api_key_result
+  when: grafana_api_keys | length > 0
+
+- name: Install/update Grafana plugins
+  become: yes
+  become_user: grafana
+  community.grafana.grafana_plugin:
+    name: "{{ item.name }}"
+    version: "{{ item.version }}"
+    state: present
+  register: restart_output
+  with_items: "{{ grafana_plugins }}"
+  when: grafana_plugins | length > 0
+  notify:
+    - Restart Grafana with service
+    - Restart Grafana with sysvinit
+    - Waiting for the service to start
+
+- ansible.builtin.meta: flush_handlers
+
+- name: Get organization list
+  ansible.builtin.uri:
+    url: "{{ grafana_api_url }}/api/orgs"
+    user: "{{ grafana_security.admin_user }}"
+    password: "{{ grafana_security.admin_password }}"
+    force_basic_auth: true
+    return_content: true
+  register: existing_organization_id
+
+- name: Create datasources
+  community.grafana.grafana_datasource:
+    grafana_url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    ds_url: "{{ item.url }}"
+    ds_type: "{{ item.type }}"
+    access: "{{ item.access | default(omit) }}"
+    is_default: "{{ item.is_default | default(omit) }}"
+    basic_auth_user: "{{ item.basic_auth_user | default(omit) }}"
+    basic_auth_password: "{{ item.basic_auth_password | default(omit) }}"
+    database: "{{ item.database | default(omit) }}"
+    user: "{{ item.user | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    tls_skip_verify: "{{ item.tls_skip_verify | default(omit) }}"
+    org_id: "{{ (existing_organization_id['json'] | selectattr('name', 'equalto', item['org_name']) | first).id }}"
+    state: present
+  with_items: "{{ grafana_datasources }}"
+  when:
+    - grafana_datasources | length > 0
+    - item.type != 'tempo'
+
+- name: Create datasources
+  grafana_datasource:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    ds_url: "{{ item.url }}"
+    ds_type: "{{ item.type }}"
+    access: "{{ item.access | default(omit) }}"
+    is_default: "{{ item.is_default | default(omit) }}"
+    basic_auth_user: "{{ item.basic_auth_user | default(omit) }}"
+    basic_auth_password: "{{ item.basic_auth_password | default(omit) }}"
+    database: "{{ item.database | default(omit) }}"
+    user: "{{ item.user | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    tls_skip_verify: "{{ item.tls_skip_verify | default(omit) }}"
+    org_id: "{{ (existing_organization_id['json'] | selectattr('name', 'equalto', item['org_name']) | first).id }}"
+    state: present
+  with_items: "{{ grafana_datasources }}"
+  when:
+    - grafana_datasources | length > 0
+    - item.type == 'tempo'
+
+- name: Create or update a Grafana user
+  community.grafana.grafana_user:
+    url: "{{ grafana_api_url }}"
+    grafana_user: "{{ grafana_security.admin_user }}"
+    grafana_password: "{{ grafana_security.admin_password }}"
+    name: "{{ item.name }}"
+    email: "{{ item.email }}"
+    login: "{{ item.login }}"
+    password: "{{ item.password }}"
+    is_admin: "{{ item.is_admin }}"
+    state: present
+  with_items: "{{ grafana_user_list }}"
+  when: grafana_user_list | length > 0
+
+- name: Setup teams
+  ansible.builtin.include_tasks: teams.yml
+  when: grafana_teams | length > 0
+  with_items: "{{ grafana_teams }}"
+
+- name: Setup folders
+  ansible.builtin.include_tasks: folders.yml
+  with_items: "{{ grafana_folders }}"
+  when: grafana_folders | length > 0
+
+- name: Setup dashboard
+  ansible.builtin.include_tasks: dashboards.yml
+  when: grafana_dashboards | length > 0
+  with_items: "{{ grafana_dashboards }}"
+
+- name: Setup contact points
+  ansible.builtin.include_tasks: contact_points.yml
+  when: contact_points | length > 0
+  with_items: "{{ contact_points }}"
+
+- name: Setup notification policies
+  ansible.builtin.include_tasks: notification_policies.yml
+  when: notification_policies | length > 0
+  with_items: "{{ notification_policies }}"
+
+- name: Write api keys in console
+  ansible.builtin.debug:
+    msg: "{{ item.api_keys.key }}"
+  when: item.api_keys.key is defined
+  with_items: "{{ api_key_result.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Create api keys folder
+  delegate_to: localhost
+  become: false
+  ansible.builtin.file:
+    path: "{{ lookup('ansible.builtin.env', 'PWD') }}/grafana-api-keys"
+    state: directory
+  when: grafana_is_write_api_keys_in_file
+
+- name: Write api keys in file
+  delegate_to: localhost
+  become: false
+  ansible.builtin.copy:
+    dest: "{{ lookup('ansible.builtin.env', 'PWD') }}/grafana-api-keys/{{ item.api_keys.name }}.key"
+    content: "{{ item.api_keys.key }}"
+    backup: false
+  when:
+    - item.api_keys.key is defined
+    - grafana_is_write_api_keys_in_file
+  with_items: "{{ api_key_result.results }}"

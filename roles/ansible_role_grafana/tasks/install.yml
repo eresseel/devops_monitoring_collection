@@ -1,0 +1,36 @@
+---
+- name: Install dependencies
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  with_items:
+    - gnupg
+    - gnupg2
+    - adduser
+    - libfontconfig
+    - ca-certificates
+    - apt-transport-https
+    - software-properties-common
+
+- name: Add an apt key by id from a keyserver
+  ansible.builtin.apt_key:
+    keyserver: "keyserver.ubuntu.com"
+    id: "963FA27710458545"
+    state: present
+
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: "{{ grafana_repository }}"
+    state: present
+    update_cache: true
+
+- name: Remove conflicting grafana packages
+  ansible.builtin.package:
+    name: grafana-data
+    state: absent
+
+- name: Install Grafana
+  ansible.builtin.package:
+    name: "{{ grafana_version }}"
+    state: "present"

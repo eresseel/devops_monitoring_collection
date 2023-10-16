@@ -1,0 +1,33 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  no_log: "{{ not lookup('env', 'MOLECULE_DEBUG') | bool }}"
+  tasks:
+    - name: Destroy molecule instance(s)
+      community.general.docker_container:
+        name: "{{ item.name }}"
+        state: absent
+        force_kill: "{{ item.force_kill | default(true) }}"
+      register: server
+      with_items: "{{ molecule_yml.platforms }}"
+      async: 7200
+      poll: 0
+
+    - name: Wait for instance(s) deletion to complete
+      ansible.builtin.async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: docker_jobs
+      until: docker_jobs.finished
+      retries: 300
+      with_items: "{{ server.results }}"
+      ignore_errors: yes
+
+    - name: Delete docker network(s)
+      community.general.docker_network:
+        name: "molecule-network"
+        labels:
+          owner: "molecule-network"
+        state: absent
+      when: lookup('ansible.builtin.env', 'MOLECULE_NETWORK_UUID')|length == 0

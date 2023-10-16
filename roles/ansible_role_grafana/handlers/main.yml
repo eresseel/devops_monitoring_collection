@@ -1,0 +1,44 @@
+---
+- name: Restart Grafana with service
+  ansible.builtin.service:
+    name: grafana-server
+    state: restarted
+  ignore_errors: true
+  when: not (ansible_connection in ['docker'] or ansible_virtualization_type in ['docker'])
+
+- name: Restart Grafana with sysvinit
+  ansible.builtin.sysvinit:
+    name: grafana-server
+    state: restarted
+  ignore_errors: true
+  when: ansible_connection in ['docker'] or ansible_virtualization_type in ['docker']
+
+- name: Start or restart Grafana with service
+  ansible.builtin.service:
+    name: grafana-server
+    enabled: true
+    state: restarted
+    daemon_reload: true
+  register: service_status
+  retries: "{{ grafana_retries }}"
+  delay: "{{ grafana_delay }}"
+  until: service_status.failed != true
+  when: not (ansible_connection in ['docker'] or ansible_virtualization_type in ['docker'])
+
+- name: Start or restart Grafana with sysvinit
+  ansible.builtin.sysvinit:
+    name: grafana-server
+    state: restarted
+    enabled: yes
+  register: service_status
+  retries: "{{ grafana_retries }}"
+  delay: "{{ grafana_delay }}"
+  until: service_status.failed != true
+  when: ansible_connection in ['docker'] or ansible_virtualization_type in ['docker']
+
+- name: Waiting for the service to start
+  ansible.builtin.wait_for:
+    host: "{{ grafana_domain }}"
+    port: "{{ grafana_port }}"
+    delay: "{{ grafana_delay }}"
+    state: started
