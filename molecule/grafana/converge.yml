@@ -1,0 +1,153 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  collections:
+    - devops.devops_monitoring_collection
+  roles:
+    - role: ansible_role_grafana
+      vars:
+        grafana_is_install: false
+        grafana_is_write_api_keys_in_file: false
+        grafana_security:
+          admin_user: admin
+          admin_password: 'admin123'
+        grafana_datasources:
+          - name: 'DS_PROMETHEUS-dummy'
+            type: 'prometheus'
+            access: 'proxy'
+            url: 'https://prometheus-dummy.mycorp.com'
+            is_default: false
+            tls_skip_verify: true
+            org_name: 'foobar'
+          - name: 'TEMPO'
+            type: 'tempo'
+            access: 'proxy'
+            url: 'https://tempo-dummy.mycorp.com'
+            is_default: false
+            tls_skip_verify: true
+            org_name: 'foobar'
+          - name: 'Prometheus'
+            type: 'prometheus'
+            access: 'proxy'
+            url: 'https://prometheus.mycorp.com'
+            is_default: true
+            tls_skip_verify: true
+            org_name: 'Main Org.'
+          - name: 'DS_PROMETHEUS'
+            type: 'prometheus'
+            access: 'proxy'
+            url: 'https://prometheus-foobar.mycorp.com'
+            is_default: false
+            tls_skip_verify: true
+            org_name: 'foobar'
+          - name: 'LOKI'
+            type: 'loki'
+            access: 'proxy'
+            url: 'https://loki-foobar.mycorp.com'
+            is_default: false
+            tls_skip_verify: true
+            org_name: 'foobar'
+        grafana_plugins:
+          - name: 'macropower-analytics-panel'
+            version: '2.1.0'
+          - name: 'blackcowmoo-googleanalytics-datasource'
+            version: '0.2.0'
+        grafana_api_keys:
+          - name: 'admin'
+            role: 'Admin'
+            org_name: 'Main Org.'
+          - name: 'foobar'
+            role: 'Viewer'
+            org_name: 'Main Org.'
+            seconds_to_live: 86400
+          - name: 'dummy'
+            role: 'Editor'
+            org_name: 'foobar'
+            seconds_to_live: 86400
+        grafana_dashboards:
+          - dashboard_id: '6098'
+            dashbord_revision: 1
+            commit_message: 'Zabbix'
+            org_name: 'Main Org.'
+            folder: 'General'
+          - commit_message: 'Jenkins'
+            folder: 'Jenkins'
+            folder_path: 'files/jenkins'
+            org_name: 'foobar'
+            file: 'jenkins.json'
+            datasource_name:
+              - name: 'DS_PROMETHEUS'
+          - commit_message: 'Jenkins'
+            folder: 'Jenkins'
+            folder_path: 'files/jenkins'
+            org_name: 'foobar'
+            file: 'jenkins-2.json'
+            datasource_name:
+              - name: 'DS_PROMETHEUS-dummy'
+          - commit_message: 'Jenkins'
+            folder: 'Jenkins'
+            folder_path: 'files/jenkins'
+            org_name: 'foobar'
+            file: 'jenkins-3.json'
+            datasource_name:
+              - name: 'DS_PROMETHEUS'
+              - name: 'TEMPO'
+        grafana_folders:
+          - title: 'Jenkins'
+            org_name: 'foobar'
+          - title: 'grafana_working_group'
+            org_name: 'Main Org.'
+        grafana_organization:
+          - name: 'orgtest'
+          - name: 'foobar'
+        grafana_user_list:
+          - name: 'Bruce Wayne'
+            email: 'batman@gotham.city'
+            login: 'batman'
+            password: 'robin'
+            is_admin: true
+          - name: 'Foo Bar'
+            email: 'foo@gotham.city'
+            login: 'foo'
+            password: 'foobar'
+            is_admin: false
+          - name: 'Jenkins'
+            email: 'jenkins@gotham.city'
+            login: 'jenkins'
+            password: 'jenkins'
+            is_admin: false
+        grafana_teams:
+          - name: 'grafana_working_group'
+            email: 'foo.bar@example.com'
+            org_name: 'foobar'
+            members:
+              - batman@gotham.city
+              - foo@gotham.city
+          - name: 'jenkins'
+            org_name: 'Main Org.'
+            email: 'foo.bar@example.com'
+        contact_points:
+          - name: 'Pipeline status mail'
+            disableResolveMessage: true
+            org_name: 'foobar'
+            settings:
+              addresses: 'foobar@email.com'
+            type: 'email'
+            uid: 'foobar'
+          - name: 'Dummy'
+            disableResolveMessage: true
+            org_name: 'Main Org.'
+            settings:
+              addresses: 'dummy@email.com'
+            type: 'email'
+            uid: 'dummy'
+        notification_policies:
+          - receiver: 'Pipeline status mail'
+            org_name: 'foobar'
+            group_wait: '30s'
+            group_interval: '5m'
+          - receiver: 'Dummy'
+            org_name: 'Main Org.'
+            group_wait: '30s'
+            group_interval: '5m'

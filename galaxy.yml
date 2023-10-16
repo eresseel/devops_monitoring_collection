@@ -1,0 +1,17 @@
+namespace: devops
+name: devops_monitoring_collection
+version: 1.0.0
+readme: README.md
+authors:
+  - Laszlo Beres laszlo.beres1990@gmail.com
+description: your collection description
+license:
+  - GPL-2.0-or-later
+license_file: ''
+tags:
+  - devops
+  - grafana
+dependencies: {}
+repository: https://github.com/eresseel/devops_monitoring_collection
+documentation: https://github.com/eresseel/devops_monitoring_collection/README.md
+homepage: https://www.eresseel.org

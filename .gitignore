@@ -1,0 +1,10 @@
+.venv
+.vscode
+.tox
+__pycache__
+molecule/*/tests/__pycache__
+*.log
+*.xml
+
+# Excludes
+!molecule/*/files/*.xml

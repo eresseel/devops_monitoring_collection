@@ -1,0 +1,26 @@
+name: Docker Image CI
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11.2-alpine
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Install dev environment
+        run: apk add gcc musl-dev linux-headers git
+
+      - name: Install test dependencies
+        run: pip install -r test-requirements.txt
+
+      - name: Run lint
+        run: |
+          yamllint -c ./molecule/common/.config/yamllint/config .
+          flake8 ./molecule/

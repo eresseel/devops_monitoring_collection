@@ -1,0 +1,11 @@
+---
+- name: Select organization
+  ansible.builtin.uri:
+    url: "{{ grafana_api_url }}/api/user/using/{{ (existing_organization_id['json'] | selectattr('name', 'equalto', item['org_name']) | first).id }}"
+    user: "{{ grafana_security.admin_user }}"
+    password: "{{ grafana_security.admin_password }}"
+    method: POST
+    force_basic_auth: true
+    return_content: true
+  register: org_change_result
+  failed_when: org_change_result.status != 200
