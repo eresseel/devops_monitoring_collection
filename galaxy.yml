@@ -11,6 +11,7 @@ license_file: ''
 tags:
   - devops
   - grafana
+  - node-exporter
 dependencies: {}
 repository: https://github.com/eresseel/devops_monitoring_collection
 documentation: https://github.com/eresseel/devops_monitoring_collection/README.md

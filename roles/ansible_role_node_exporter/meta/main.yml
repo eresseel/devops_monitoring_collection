@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: ansible_role_node_exporter
+  author: "Laszlo Beres"
+  description: "Deploy Node Exporter Service"
+  license: "GPL-2.0-or-later"
+  dependencies: []
+  min_ansible_version: '7.6.0'
+  galaxy_tags:
+    - monitoring
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+    - name: Debian
+      versions:
+        - bullseye
+    - name: RedHat
+      versions:
+        - 8
+    - name: Alpine
+      version:
+        - 3.18
