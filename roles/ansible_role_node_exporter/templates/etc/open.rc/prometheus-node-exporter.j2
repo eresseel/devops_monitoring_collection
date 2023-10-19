@@ -1,0 +1,7 @@
+#!/sbin/openrc-run
+
+command="{{ prometheus_node_exporter_root_dir }}/node_exporter_current/node_exporter"
+command_args="{% for collector in prometheus_node_exporter_enabled_collectors %}--collector.{{ collector }} {% endfor %} {% for collector in prometheus_node_exporter_disabled_collectors %}--no-collector.{{ collector }} {% endfor %} {% for flag, flag_value in prometheus_node_exporter_config_flags.items() %}--{{ flag }}={{ flag_value }} {% endfor %}"
+command_user="{{ prometheus_node_exporter_user }}"
+pidfile="/run/prometheus-node-exporter/prometheus-node-exporter.pid"
+command_background="yes"

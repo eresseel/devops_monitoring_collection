@@ -118,6 +118,29 @@
   notify:
     - Restart node exporter
 
+- name: Create prometheus-node-exporter.pid file
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    state: "{{ item.state }}"
+    mode: 0755
+  when: service_mgr | default(ansible_service_mgr) in [ 'openrc' ]
+  with_items:
+    - { path: '/run/prometheus-node-exporter/', state: 'directory' }
+    - { path: '/run/prometheus-node-exporter/prometheus-node-exporter.pid', state: 'touch' }
+
+- name: Create openrc service unit
+  ansible.builtin.template:
+    src: etc/open.rc/prometheus-node-exporter.j2
+    dest: /etc/init.d/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0755
+  when: service_mgr | default(ansible_service_mgr) in [ 'openrc' ]
+  notify:
+    - Restart node exporter
+
 - meta: flush_handlers
 
 - name: Start node exporter service on docker container
