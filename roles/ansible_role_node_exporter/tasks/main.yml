@@ -127,8 +127,8 @@
     mode: 0755
   when: service_mgr | default(ansible_service_mgr) in [ 'openrc' ]
   with_items:
-    - { path: '/run/prometheus-node-exporter/', state: 'directory' }
-    - { path: '/run/prometheus-node-exporter/prometheus-node-exporter.pid', state: 'touch' }
+    - {path: '/run/prometheus-node-exporter/', state: 'directory'}
+    - {path: '/run/prometheus-node-exporter/prometheus-node-exporter.pid', state: 'touch'}
 
 - name: Create openrc service unit
   ansible.builtin.template:
