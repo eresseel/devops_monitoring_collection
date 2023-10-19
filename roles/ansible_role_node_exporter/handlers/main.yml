@@ -1,0 +1,12 @@
+---
+- name: Reenable node exporter service
+  ansible.builtin.command: systemctl reenable prometheus-node-exporter.service
+
+- name: Reinit node exporter
+  ansible.builtin.command: initctl reload-configuration
+
+- name: Restart node exporter
+  ansible.builtin.service:
+    name: prometheus-node-exporter
+    state: restarted
+  when: virtualization_type | default(ansible_virtualization_type) not in [ 'docker', 'container' ]

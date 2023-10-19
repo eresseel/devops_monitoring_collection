@@ -1,0 +1,8 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: true
+  collections:
+    - devops.devops_monitoring_collection
+  roles:
+    - role: ansible_role_node_exporter
