@@ -1,0 +1,15 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: true
+  collections:
+    - devops.devops_monitoring_collection
+  roles:
+    - role: ansible_role_prometheus
+      vars:
+        prometheus_is_install: true
+        prometheus_config_flags:
+          'config.file': '{{ prometheus_config_dir }}/prometheus.yml'
+          'storage.tsdb.path': '{{ prometheus_db_dir }}'
+          'web.listen-address': '{{ prometheus_web_listen_address }}'
+          'web.external-url': '{{ prometheus_web_external_url }}'

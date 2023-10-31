@@ -1,0 +1,11 @@
+groups:
+  - name: Deployment
+    rules:
+    - alert: Deployment at 0 Replicas
+      annotations:
+        summary: Deployment {{$labels.deployment}} in {{$labels.namespace}} is currently having no pods running
+      expr: |
+        sum(kube_deployment_status_replicas{pod_template_hash=""}) by (deployment,namespace)  < 1
+      for: 1m
+      labels:
+        team: default

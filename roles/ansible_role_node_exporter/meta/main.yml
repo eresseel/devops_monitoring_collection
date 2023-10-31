@@ -1,11 +1,11 @@
 ---
 galaxy_info:
   role_name: ansible_role_node_exporter
-  author: "Laszlo Beres"
+  author: Laszlo Beres laszlo.beres1990@gmail.com
   description: "Deploy Node Exporter Service"
   license: "GPL-2.0-or-later"
-  dependencies: []
   min_ansible_version: '7.6.0'
+  dependencies: []
   galaxy_tags:
     - monitoring
   platforms:

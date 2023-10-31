@@ -1,17 +1,18 @@
 namespace: devops
 name: devops_monitoring_collection
-version: 1.0.0
+version: 1.1.0
 readme: README.md
 authors:
-  - Laszlo Beres laszlo.beres1990@gmail.com
-description: your collection description
+  - "Laszlo Beres laszlo.beres1990@gmail.com"
+description: Deploy Monitoring Services
+license_file: "LICENSE"
 license:
-  - GPL-2.0-or-later
-license_file: ''
+  - "GPL-2.0-or-later"
 tags:
   - devops
   - grafana
   - node-exporter
+  - prometheus
 dependencies: {}
 repository: https://github.com/eresseel/devops_monitoring_collection
 documentation: https://github.com/eresseel/devops_monitoring_collection/README.md

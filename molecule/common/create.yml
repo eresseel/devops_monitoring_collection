@@ -62,6 +62,7 @@
         capabilities: "{{ item.capabilities | default(omit) }}"
         exposed_ports: "{{ item.exposed_ports | default(omit) }}"
         published_ports: "{{ item.published_ports | default(omit) }}"
+        ports: "{% if item.exposed_ports is defined %}{{ item.exposed_ports }}:{{ item.exposed_ports }}{% else %}1234{% endif %}"
         ulimits: "{{ item.ulimits | default(omit) }}"
         networks:
           - name: "molecule-{{ lookup('ansible.builtin.env', 'MOLECULE_NETWORK_UUID', default='network') }}"

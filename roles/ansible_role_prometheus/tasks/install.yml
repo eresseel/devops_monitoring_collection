@@ -1,0 +1,93 @@
+---
+- name: Install needed packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - tar
+    - bzip2
+    - ca-certificates
+    - ssl-cert
+
+- name: Create prometheus system group
+  ansible.builtin.group:
+    name: "{{ prometheus_group }}"
+    system: yes
+    state: present
+
+- name: Create prometheus system user
+  ansible.builtin.user:
+    name: "{{ prometheus_user }}"
+    system: yes
+    shell: "/sbin/nologin"
+    group: "{{ prometheus_group }}"
+    groups: "ssl-cert"
+    createhome: no
+
+- name: Create prometheus directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: 0755
+  with_items:
+    - "{{ prometheus_root_dir }}"
+    - "{{ prometheus_dist_dir }}"
+    - "{{ prometheus_config_dir }}"
+    - "{{ prometheus_config_dir }}/conf.d"
+    - "{{ prometheus_rules_dir }}"
+    - "{{ prometheus_file_sd_config_dir }}"
+    - "{{ prometheus_db_dir }}"
+    - "{{ prometheus_log_dir }}"
+
+- name: Create prometheus config file
+  ansible.builtin.file:
+    path: "/etc/prometheus/prometheus.yml"
+    state: touch
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: 0755
+
+- name: Download prometheus server binary
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/{{ prometheus_release_name }}.tar.gz"
+    dest: "{{ prometheus_dist_dir }}/{{ prometheus_release_name }}.tar.gz"
+
+- name: Unarchive binary tarball
+  ansible.builtin.unarchive:
+    copy: no
+    src: "{{ prometheus_dist_dir }}/{{ prometheus_release_name }}.tar.gz"
+    dest: "{{ prometheus_dist_dir }}"
+    creates: "{{ prometheus_dist_dir }}/{{ prometheus_release_name }}/prometheus"
+  register: prometheus_updated
+  notify:
+    - Restart prometheus
+
+- name: Update group and owner for files
+  ansible.builtin.file:
+    path: "{{ prometheus_release_name }}"
+    state: directory
+    recurse: yes
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+
+- name: Create symlink to the current release
+  ansible.builtin.file:
+    src: "{{ prometheus_dist_dir }}/{{ prometheus_release_name }}"
+    path: "{{ prometheus_root_dir }}/current"
+    state: link
+
+- name: Change pam nofile limits for prometheus
+  ansible.builtin.pam_limits:
+    domain: "{{ prometheus_pam_domain }}"
+    limit_item: nofile
+    limit_type: "{{ item }}"
+    value: "{{ prometheus_pam_nofile_value }}"
+    use_max: yes
+  with_items:
+    - soft
+    - hard
+  notify:
+    - Restart prometheus

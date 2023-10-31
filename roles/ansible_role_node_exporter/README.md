@@ -1,4 +1,4 @@
-# prometheus-node-exporter
+# ansible_role_node_exporter
 An Ansible role that installs Prometheus Node Exporter on Ubuntu | Debian | Redhat | Alpine-based machines with systemd | Upstart|sysvinit.
 
 ## 1. Requirements
@@ -14,7 +14,7 @@ All needed packages will be installed with this role.
 | prometheus_node_exporter_config_flags        | dict   | | | Dict of key, value options to add to the start command line |
 | prometheus_node_exporter_url                 | string | | not defined | Custom URL to download node_exporter if you can't access to github |
 
-## Example Playbook
+## 3. Example Playbook
 ```yaml
 - hosts: node-exporters
   roles:
