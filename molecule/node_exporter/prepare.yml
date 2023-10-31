@@ -6,3 +6,6 @@
     - devops.devops_monitoring_collection
   roles:
     - role: ansible_role_node_exporter
+      vars:
+        prometheus_node_exporter_config_flags:
+          'web.listen-address': '0.0.0.0:9100'

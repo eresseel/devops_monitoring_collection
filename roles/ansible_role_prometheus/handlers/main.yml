@@ -1,0 +1,15 @@
+---
+- name: Service reenable
+  ansible.builtin.command: systemctl reenable prometheus.service
+
+- name: Restart prometheus
+  ansible.builtin.service:
+    name: prometheus
+    state: restarted
+  when: virtualization_type | default(ansible_virtualization_type) not in [ 'docker', 'container' ]
+
+- name: Reload prometheus
+  ansible.builtin.service:
+    name: prometheus
+    state: reloaded
+  when: virtualization_type | default(ansible_virtualization_type) not in [ 'docker', 'container' ]

@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: ansible_role_grafana
-  author: Laszlo Beres laszlo.beres1990@gmail.com
-  description: "Deploy Grafana Service"
+  role_name: ansible_role_prometheus
+  author: Laszlo Beres
+  description: Deploy Prometheus Service
   license: "GPL-2.0-or-later"
   min_ansible_version: '7.6.0'
   dependencies: []

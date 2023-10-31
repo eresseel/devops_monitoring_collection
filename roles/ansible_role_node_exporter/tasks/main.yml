@@ -143,6 +143,11 @@
 
 - meta: flush_handlers
 
+- name: Stop node exporter service on docker container
+  ansible.builtin.command: "pkill -f {{ prometheus_node_exporter_root_dir }}/node_exporter_current/node_exporter"
+  ignore_errors: true
+  when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
+
 - name: Start node exporter service on docker container
   ansible.builtin.command: "{{ prometheus_node_exporter_root_dir }}/node_exporter_current/node_exporter {% for collector in prometheus_node_exporter_enabled_collectors %}--collector.{{ collector }} {% endfor %} {% for collector in prometheus_node_exporter_disabled_collectors %}--no-collector.{{ collector }} {% endfor %} {% for flag, flag_value in prometheus_node_exporter_config_flags.items() %}--{{ flag }}={{ flag_value }} {% endfor %}"
   async: 3000
