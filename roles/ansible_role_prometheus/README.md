@@ -7,17 +7,13 @@ All needed packages will be installed with this role. Minimal Ansible version - 
 ## 2. Role Variables
 Available main variables are listed below, along with default values:
 ```yaml
-prometheus_is_install: false
+prometheus_is_install: true
 prometheus_version: 2.47.2
 prometheus_release_name: "prometheus-{{ prometheus_version }}.linux-amd64"
 prometheus_gomaxprocs: "{{ ansible_processor_vcpus|default(ansible_processor_count) }}"
 
 prometheus_user: prometheus
 prometheus_group: prometheus
-
-prometheus_global_scrape_interval: 15s
-prometheus_global_evaluation_interval: 15s
-prometheus_global_scrape_timeout: 10s
 
 prometheus_root_dir: /opt/prometheus
 prometheus_config_dir: /etc/prometheus
@@ -28,9 +24,8 @@ prometheus_bin_dir: "{{ prometheus_root_dir }}/current"
 prometheus_rules_dir: "{{ prometheus_config_dir }}/rules"
 prometheus_file_sd_config_dir: "{{ prometheus_config_dir }}/tgroups"
 
-prometheus_rules_src_dir: "{{ playbook_dir }}/files/rules"
-prometheus_config_parts_src_dir: "{{ playbook_dir }}/files/config_parts"
-prometheus_tgroups_src_dir: "{{ playbook_dir }}/files/tgroups"
+prometheus_rules_src_dir: "{{ playbook_dir }}/files/prometheus/alerts"
+prometheus_config_src_dir: "{{ playbook_dir }}/templates/prometheus/config"
 
 prometheus_rules_files: []
 
@@ -48,6 +43,9 @@ prometheus_config_flags:
 prometheus_config_flags_extra: {}
 prometheus_pam_domain: "prometheus"
 prometheus_pam_nofile_value: "1024"
+
+alert_file:
+  - name: alert.rules
 ```
 
 ## 3. Dependencies

@@ -11,7 +11,7 @@ PIDFile=/var/run/prometheus.pid
 User={{ prometheus_user }}
 Group={{ prometheus_group }}
 ExecReload=/bin/kill -HUP $MAINPID
-ExecStart={{ prometheus_bin_dir }}/prometheus {% for flag, flag_value in prometheus_config_flags.items() %}--{{ flag }}={{ flag_value }} {% endfor %} {% for flag, flag_value in prometheus_config_flags_extra.items() %}--{{ flag }}={{ flag_value }} {% endfor %}
+ExecStart={{ prometheus_bin_dir }}/prometheus {% for flag, flag_value in prometheus_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}
 
 SyslogIdentifier=prometheus
 Restart=always

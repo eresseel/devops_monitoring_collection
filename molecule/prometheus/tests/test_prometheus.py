@@ -49,7 +49,8 @@ def test_process(host):
          + " --web.listen-address=:9090" \
          + " --web.external-url=http://localhost:9090/" \
          + " --web.console.templates=/etc/prometheus/consoles" \
-         + " --web.console.libraries=/etc/prometheus/console_libraries"
+         + " --web.console.libraries=/etc/prometheus/console_libraries" \
+         + " --web.enable-lifecycle"
     process = host.process.get(args=args)
     assert process.user == "root"
     assert process.args == args
