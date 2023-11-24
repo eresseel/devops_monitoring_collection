@@ -15,3 +15,4 @@
           'web.external-url': '{{ prometheus_web_external_url }}'
           'web.console.templates': '/etc/prometheus/consoles'
           'web.console.libraries': '/etc/prometheus/console_libraries'
+          'web.enable-lifecycle': ''
