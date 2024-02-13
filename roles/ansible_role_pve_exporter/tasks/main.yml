@@ -1,7 +1,7 @@
 ---
 - name: Install pve-exporter
   ansible.builtin.import_tasks: install.yml
-  when: pve_exporter_is_install
+  when: prometheus_pve_exporter_is_install
 
 - name: Copy pve.yml file
   ansible.builtin.template:
@@ -23,12 +23,12 @@
 - meta: flush_handlers
 
 - name: Stop pve-exporter service on docker container
-  ansible.builtin.command: "pkill -f /opt/prometheus-pve-exporter/bin/python {{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter"
+  ansible.builtin.command: "pkill -f /opt/prometheus-pve-exporter/bin/python {{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter {% for flag, flag_value in prometheus_pve_exporter_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_pve_exporter_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}"
   ignore_errors: true
   when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
 
 - name: Start pve-exporter service on docker container
-  ansible.builtin.command: "{{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter --config.file {{ prometheus_pve_exporter_config_dir }}/pve.yml"
+  ansible.builtin.command: "{{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter {% for flag, flag_value in prometheus_pve_exporter_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_pve_exporter_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}"
   async: 3000
   poll: 0
   when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]

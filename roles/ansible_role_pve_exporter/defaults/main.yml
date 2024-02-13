@@ -1,6 +1,6 @@
 ---
 proxmox_is_enterprise: false
-pve_exporter_is_install: true
+prometheus_pve_exporter_is_install: true
 prometheus_pve_exporter_version: 3.2.2
 
 prometheus_pve_exporter_user: prometheus
@@ -9,7 +9,12 @@ prometheus_pve_exporter_group: prometheus
 prometheus_pve_exporter_root_dir: /opt/prometheus-pve-exporter
 prometheus_pve_exporter_config_dir: /etc/prometheus
 
-pve_exporter_config:
+prometheus_pve_exporter_config:
   user: root@pam
   password: "root123"
   verify_ssl: false
+
+prometheus_pve_exporter_config_flags:
+  'config.file': '{{ prometheus_pve_exporter_config_dir }}/pve.yml'
+
+prometheus_pve_exporter_config_flags_extra: {}
