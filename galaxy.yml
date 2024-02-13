@@ -13,6 +13,7 @@ tags:
   - grafana
   - node-exporter
   - prometheus
+  - pve-exporter
 dependencies: {}
 repository: https://github.com/eresseel/devops_monitoring_collection
 documentation: https://github.com/eresseel/devops_monitoring_collection/README.md

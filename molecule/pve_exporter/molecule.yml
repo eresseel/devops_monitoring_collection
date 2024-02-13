@@ -1,0 +1,64 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: debian-12-pve-exporter
+    image: debian:12
+    groups:
+      - pve-exporter
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      local_tmp: '/tmp'
+      remote_tmp: '/tmp'
+      display_args_to_stdout: true
+      error_on_undefined_vars: true
+      system_warnings: true
+      deprecation_warnings: true
+      command_warnings: true
+      nocolor: false
+      log_path: ${PWD}/pve-exporter-${SUFFIX:-dev}.log
+      host_key_checking: false
+  playbooks:
+    create: ${PWD}/molecule/common/create.yml
+    destroy: ${PWD}/molecule/common/destroy.yml
+    converge: ${PWD}/molecule/pve_exporter/converge.yml
+  options:
+    diff: true
+scenario:
+  create_sequence:
+    - destroy
+    - create
+  check_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - create
+    - prepare
+  converge_sequence:
+    - dependency
+    - create
+    - prepare
+    - converge
+  destroy_sequence:
+    - destroy
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
+verifier:
+  name: testinfra
+  enabled: true
+  options:
+    junit-xml: 'pve-exporter.xml'
