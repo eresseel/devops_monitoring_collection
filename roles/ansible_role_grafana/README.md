@@ -1,7 +1,7 @@
-# 1. ansible_grafana_role
+# ansible_grafana_role
 
-## 2. Role Variables
-### 2.1. defaults/main.yml
+## 1. Role Variables
+### 1.1. defaults/main.yml
 
 ```yaml
 grafana_version: grafana=10.0.1
@@ -67,7 +67,7 @@ contact_points: []
 notification_policies: []
 ```
 
-###  3.2. playbook configuration
+###  1.2. playbook configuration
 ```yaml
 ---
 grafana_version: grafana=10.0.1

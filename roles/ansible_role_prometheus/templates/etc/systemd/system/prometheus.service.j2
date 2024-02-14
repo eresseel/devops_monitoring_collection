@@ -1,0 +1,20 @@
+
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/prometheus
+PIDFile=/var/run/prometheus.pid
+User={{ prometheus_user }}
+Group={{ prometheus_group }}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ prometheus_bin_dir }}/prometheus {% for flag, flag_value in prometheus_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}
+
+SyslogIdentifier=prometheus
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

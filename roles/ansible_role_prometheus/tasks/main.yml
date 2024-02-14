@@ -1,0 +1,60 @@
+---
+- name: Install prometheus
+  ansible.builtin.import_tasks: install.yml
+  when: prometheus_is_install
+
+- name: Created service environment file
+  ansible.builtin.template:
+    src: etc/default/prometheus.j2
+    dest: /etc/default/prometheus
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart prometheus
+
+- name: Create systemd service unit
+  ansible.builtin.template:
+    src: etc/systemd/system/prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_service_mgr == 'systemd'
+  notify:
+    - Service reenable
+    - Restart prometheus
+
+- name: Create init service unit
+  ansible.builtin.template:
+    src: etc/init/prometheus.conf.j2
+    dest: /etc/init/prometheus.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_service_mgr == 'upstart'
+  notify:
+    - Restart prometheus
+
+- meta: flush_handlers
+
+- name: Stop prometheus service on docker container
+  ansible.builtin.command: "pkill -f {{ prometheus_bin_dir }}/prometheus"
+  ignore_errors: true
+  when:
+    - virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
+
+- name: Start prometheus service on docker container
+  ansible.builtin.command: "{{ prometheus_bin_dir }}/prometheus {% for flag, flag_value in prometheus_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}"
+  async: 3000
+  poll: 0
+  when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
+
+- name: Ensure prometheus service is enabled
+  ansible.builtin.service:
+    name: prometheus
+    enabled: yes
+  when: virtualization_type | default(ansible_virtualization_type) not in [ 'docker', 'container' ]
+
+- name: Include prometheus configuration
+  ansible.builtin.import_tasks: configuration.yml

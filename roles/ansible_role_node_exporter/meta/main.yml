@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: ansible_role_grafana
+  role_name: ansible_role_node_exporter
   author: Laszlo Beres laszlo.beres1990@gmail.com
-  description: "Deploy Grafana Service"
+  description: "Deploy Node Exporter Service"
   license: "GPL-2.0-or-later"
   min_ansible_version: '7.6.0'
   dependencies: []
@@ -12,3 +12,12 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - focal
+    - name: Debian
+      versions:
+        - bullseye
+    - name: RedHat
+      versions:
+        - 8
+    - name: Alpine
+      version:
+        - 3.18
