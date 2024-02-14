@@ -1,0 +1,39 @@
+---
+- name: Install pve-exporter
+  ansible.builtin.import_tasks: install.yml
+  when: prometheus_pve_exporter_is_install
+
+- name: Copy pve.yml file
+  ansible.builtin.template:
+    src: "etc/prometheus/pve.yml.j2"
+    dest: "{{ prometheus_pve_exporter_config_dir }}/pve.yml"
+    owner: "{{ prometheus_pve_exporter_user }}"
+    group: "{{ prometheus_pve_exporter_group }}"
+    mode: 0644
+
+- name: Copy pve-exporter service file
+  ansible.builtin.template:
+    src: "etc/systemd/system/prometheus-pve-exporter.service.j2"
+    dest: "/etc/systemd/system/prometheus-pve-exporter.service"
+    owner: "{{ prometheus_pve_exporter_user }}"
+    group: "{{ prometheus_pve_exporter_group }}"
+    mode: 0644
+  notify: Start and enabled prometheus-pve-exporter
+
+- meta: flush_handlers
+
+- name: Stop pve-exporter service on docker container
+  ansible.builtin.command: "pkill -f /opt/prometheus-pve-exporter/bin/python {{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter {% for flag, flag_value in prometheus_pve_exporter_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_pve_exporter_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}"
+  ignore_errors: true
+  when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
+
+- name: Start pve-exporter service on docker container
+  ansible.builtin.command: "{{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter {% for flag, flag_value in prometheus_pve_exporter_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_pve_exporter_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}"
+  async: 3000
+  poll: 0
+  when: virtualization_type | default(ansible_virtualization_type) in [ 'docker', 'container' ]
+
+- name: Remove useless packages from the cache
+  ansible.builtin.apt:
+    autoclean: yes
+    autoremove: yes

@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus exporter for Proxmox VE
+Documentation=https://github.com/znerol/prometheus-pve-exporter
+
+[Service]
+Restart=always
+PIDFile=/var/run/{{ prometheus_pve_exporter_user }}.pid
+User={{ prometheus_pve_exporter_user }}
+Group={{ prometheus_pve_exporter_group }}
+SyslogIdentifier={{ prometheus_pve_exporter_user }}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ prometheus_pve_exporter_root_dir }}/bin/pve_exporter {% for flag, flag_value in prometheus_pve_exporter_config_flags.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}{% for flag, flag_value in prometheus_pve_exporter_config_flags_extra.items() %}{% if flag_value != '' %} --{{ flag }}={{ flag_value }}{% else %} --{{ flag }}{% endif %}{% endfor %}
+
+[Install]
+WantedBy=multi-user.target

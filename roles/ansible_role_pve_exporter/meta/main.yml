@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: ansible_role_pve_exporter
+  author: Laszlo Beres
+  description: Deploy PVE Exporter on Proxmox VE node
+  license: "GPL-2.0-or-later"
+  min_ansible_version: '7.6.0'
+  dependencies: []
+  galaxy_tags:
+    - monitoring
+  platforms:
+    - name: Debian
+      versions:
+        - 12

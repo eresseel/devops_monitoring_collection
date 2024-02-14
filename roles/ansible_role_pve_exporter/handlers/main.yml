@@ -1,0 +1,7 @@
+---
+- name: Start and enabled prometheus-pve-exporter
+  ansible.builtin.service:
+    name: prometheus-pve-exporter
+    state: started
+    enabled: yes
+  when: virtualization_type | default(ansible_virtualization_type) not in [ 'docker', 'container' ]
