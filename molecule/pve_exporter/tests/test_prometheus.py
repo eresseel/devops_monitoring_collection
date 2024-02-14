@@ -2,6 +2,7 @@
 Testing pve-exporter
 """
 
+
 def test_passwd_file(host):
     passwd = host.file("/etc/passwd")
     assert passwd.contains("prometheus")
@@ -9,7 +10,8 @@ def test_passwd_file(host):
 
 
 def test_exists_file(host):
-    pve_exporter = host.file("/etc/systemd/system/prometheus-pve-exporter.service")
+    pve_exporter = host.\
+        file("/etc/systemd/system/prometheus-pve-exporter.service")
     assert pve_exporter.exists
 
 
